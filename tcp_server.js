@@ -1,14 +1,11 @@
 var net = require('net');
-var encryption = require("./Encryption.js");
-var session_fac = require("./Session.js");
+var encryption = require("./encryption");
+var HAPSession = require("./hap_session");
 
 function TCPServer(servicePort, hapPort, persistStore, accessoryInfo) {
-	if (!(this instanceof TCPServer))  {
-		return new TCPServer(servicePort, hapPort, persistStore, accessoryInfo);
-	}
 	this.servicePort = servicePort;
 	this.persistStore = persistStore;
-    this.accessoryInfo = accessoryInfo;
+  this.accessoryInfo = accessoryInfo;
 	this.hapPort = hapPort;
 	this.server = this.createServer(this.servicePort, this.hapPort);
 	this.sessions = {};
@@ -19,7 +16,7 @@ TCPServer.prototype = {
 	createServer: function createServer(servicePort, hapPort) {
 		var server = net.createServer(function (socket) {
 			if(this.sessions[socket.remotePort] === undefined) {
-				this.sessions[socket.remotePort] = new session_fac.HAPSession(this, socket, this.hapPort, this.persistStore, this.accessoryInfo, function(remotePort, localPort) {
+				this.sessions[socket.remotePort] = new HAPSession(this, socket, this.hapPort, this.persistStore, this.accessoryInfo, function(remotePort, localPort) {
 					this.portMap[localPort] = this.sessions[remotePort];
 				}.bind(this));
 			}
@@ -57,6 +54,4 @@ TCPServer.prototype = {
 	}
 }
 
-module.exports = {
-	TCPServer: TCPServer
-};
+module.exports = TCPServer;

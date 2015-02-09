@@ -1,7 +1,7 @@
-var encryption = require("./Encryption.js");
+var encryption = require("./encryption");
 var hkdf = require("./hkdf");
 var net = require('net');
-var server_fac = require("./Server.js");
+var server_fac = require("./hap_server");
 
 HAPSession.prototype = {
 	updateEncryptTrafficStatus: function updateEncryptTrafficStatus() {
@@ -113,12 +113,9 @@ HAPSession.prototype = {
 		var output_key_write = hkdf.HKDF("sha512",enc_salt,sharedSec,info_write,32);
 		this.controllerToAccessoryKey = output_key_write;
 	}
-}
+};
 
 function HAPSession(tcpServer, socket, hapPort, persistStore, accessoryInfo, callback) {
-	if (!(this instanceof HAPSession))  {
-		return new HAPSession(tcpServer, socket, persistStore, accessoryInfo, callback);
-	}
 	this.tcpServer = tcpServer;
 	this.socket = socket;
 	this.persistStore = persistStore;
@@ -132,6 +129,4 @@ function randomInt (low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
 
-module.exports = {
-	HAPSession: HAPSession
-}
+module.exports = HAPSession;

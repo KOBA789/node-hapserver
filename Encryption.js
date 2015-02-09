@@ -1,5 +1,5 @@
 var crypto = require("crypto");
-var chacha20poly1305 = require("./chacha20poly1305.js");
+var chacha20poly1305 = require("./chacha20poly1305");
 var curve25519 = require("curve25519");
 var assert = require('assert');
 

@@ -1,8 +1,4 @@
 function Service(type) {
-	if (!(this instanceof Service))  {
-		return new Service(type);
-	}
-
 	this.instanceID = 0;
 	this.type = type;
 	this.characteristics = [];
@@ -24,11 +20,9 @@ Service.prototype = {
 			iid: this.instanceID,
 			type: this.type,
 			characteristics: characteristicsObjects
-		}
+		};
 		return serviceDict;
 	}
-}
-
-module.exports = {
-	Service: Service
 };
+
+module.exports = Service;

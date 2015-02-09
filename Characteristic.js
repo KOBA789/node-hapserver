@@ -1,8 +1,4 @@
 function Characteristic(options, onUpdate) {
-	if (!(this instanceof Characteristic))  {
-		return new Characteristic(options);
-	}
-
 	this.instanceID = 0;
 	this.accessoryID = 0;
 	this.type = options.type;
@@ -49,7 +45,7 @@ Characteristic.prototype = {
 			format: this.format,
 			value: this.value,
 			events: this.eventEnabled,
-			bonjour: this.bonjourEnabled,
+			bonjour: this.bonjourEnabled
 		};
 
 		if (this.manfDescription !== undefined) {
@@ -85,7 +81,7 @@ Characteristic.prototype = {
 							value: this.value
 						}
 					]
-				}
+				};
 				var eventJSON = JSON.stringify(eventDict);
 				this.accessoryController.broadcastEvent(eventJSON, this.subscribedPeers, peer);
 			}
@@ -94,8 +90,6 @@ Characteristic.prototype = {
 	valueForUpdate: function valueForUpdate() {
 		return this.value;
 	}
-}
-
-module.exports = {
-	Characteristic: Characteristic
 };
+
+module.exports = Characteristic;

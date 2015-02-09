@@ -4,13 +4,10 @@ var srp = require("srp");
 var hkdf = require("./hkdf");
 var url = require("url");
 var ed25519 = require("ed25519");
-var tlvHandler = require("./TLV-Handler.js");
-var encryption = require("./Encryption.js");
+var tlv = require("./tlv");
+var encryption = require("./encryption");
 
 function HAPServer(accessoryInfo, callback, persistStore, accessoryController) {
-	if (!(this instanceof HAPServer))  {
-		return new HAPServer(accessoryInfo, callback, persistStore, accessoryController);
-	}
 	this.server_sign_keyPair = accessoryInfo.keyPair;
 	this.accessoryInfo = accessoryInfo;
 	this.persistStore = persistStore;
@@ -34,13 +31,13 @@ HAPServer.prototype = {
 				switch(request.url) {
 					case "/pair-setup":
 						request.on('data', function(chunk) {
-					      var objects = tlvHandler.decodeTLV(chunk);
+					      var objects = tlv.decodeTLV(chunk);
 					      that.processPairSequence(objects, response);
 					    });
 					    break;
 					case "/pair-verify":
 						request.on('data', function(chunk) {
-					      var objects = tlvHandler.decodeTLV(chunk);
+					      var objects = tlv.decodeTLV(chunk);
 					      that.processVerifySequence(objects, response, request);
 					    });
 						break;
@@ -54,7 +51,7 @@ HAPServer.prototype = {
 						break;
 					case "/pairings":
 						request.on('data', function(chunk) {
-					      var objects = tlvHandler.decodeTLV(chunk);
+					      var objects = tlv.decodeTLV(chunk);
 					      that.processPairings(objects, response);
 					    });
 						break;
@@ -165,13 +162,13 @@ HAPServer.prototype = {
 		var output_key = hkdf.HKDF("sha512",enc_salt,sharedSec,enc_info,32);
 		output_key = output_key.slice(0,32);
 		this.tcpServer.retrieveSession(this.currentSessionPort).hkdf_pair_enc_key = output_key;
-		var message = Buffer.concat([tlvHandler.encodeTLV(0x01,usernameData),tlvHandler.encodeTLV(0x0a,serverProof)]);
+		var message = Buffer.concat([tlv.encodeTLV(0x01,usernameData),tlv.encodeTLV(0x0a,serverProof)]);
 		var ciphertextBuffer = Buffer(Array(message.length));
 		var macBuffer = Buffer(Array(16));
 		encryption.encryptAndSeal(output_key,Buffer("PV-Msg02"),message,null,ciphertextBuffer,macBuffer);
 
-		var encDataResp = tlvHandler.encodeTLV(0x05,Buffer.concat([ciphertextBuffer,macBuffer]));
-		var pubKeyResp = tlvHandler.encodeTLV(0x03,publicKey);
+		var encDataResp = tlv.encodeTLV(0x05,Buffer.concat([ciphertextBuffer,macBuffer]));
+		var pubKeyResp = tlv.encodeTLV(0x03,publicKey);
 
 		response.write(Buffer([0x06,0x01,0x02]));
 		response.write(encDataResp);
@@ -190,7 +187,7 @@ HAPServer.prototype = {
 
 		var plaintextBuffer = Buffer(messageData.length);
 		if (encryption.verifyAndDecrypt(this.tcpServer.retrieveSession(this.currentSessionPort).hkdf_pair_enc_key,Buffer("PV-Msg03"),messageData,authTagData,null,plaintextBuffer)) {
-			var tlvData = tlvHandler.decodeTLV(plaintextBuffer);
+			var tlvData = tlv.decodeTLV(plaintextBuffer);
 			var clientUsername = tlvData[0x01];
 			var proof = tlvData[0x0a];
 
@@ -261,8 +258,8 @@ HAPServer.prototype = {
                                       key);
 			var srpB = this.srpServer.computeB();
 
-			var respData_pub = tlvHandler.encodeTLV(0x03,srpB);
-			var respSaltData = tlvHandler.encodeTLV(0x02,salt);
+			var respData_pub = tlv.encodeTLV(0x03,srpB);
+			var respSaltData = tlv.encodeTLV(0x02,salt);
 			response.write(Buffer([0x06,0x01,0x02]));
 			response.write(respSaltData);
 			response.write(respData_pub);
@@ -280,7 +277,7 @@ HAPServer.prototype = {
 		this.srpServer.setA(A);
 
 		var M2 = this.srpServer.checkM1(M1);
-		var respData_M2 = tlvHandler.encodeTLV(0x04,M2);
+		var respData_M2 = tlv.encodeTLV(0x04,M2);
 		response.write(Buffer([0x06,0x01,0x04]));
 		response.write(respData_M2);
 		response.end();
@@ -304,7 +301,7 @@ HAPServer.prototype = {
 
 		var plaintextBuffer = Buffer(messageData.length);
 		encryption.verifyAndDecrypt(output_key,Buffer("PS-Msg05"),messageData,authTagData,null,plaintextBuffer);
-		var M5_Packet = tlvHandler.decodeTLV(plaintextBuffer);
+		var M5_Packet = tlv.decodeTLV(plaintextBuffer);
 		var clientUsername = M5_Packet[1];
 		var clientLTPK = M5_Packet[3];
 		var clientProof = M5_Packet[10];
@@ -349,16 +346,16 @@ HAPServer.prototype = {
 
 		var serverProof = ed25519.Sign(material, privateKey);
 
-		var message = Buffer.concat([tlvHandler.encodeTLV(0x01,usernameData),tlvHandler.encodeTLV(0x03,serverLTPK_buffer),tlvHandler.encodeTLV(0x0a,serverProof)]);
+		var message = Buffer.concat([tlv.encodeTLV(0x01,usernameData),tlv.encodeTLV(0x03,serverLTPK_buffer),tlv.encodeTLV(0x0a,serverProof)]);
 		var ciphertextBuffer = Buffer(Array(message.length));
 		var macBuffer = Buffer(Array(16));
 		encryption.encryptAndSeal(this.hkdf_enc_key,Buffer("PS-Msg06"),message,null,ciphertextBuffer,macBuffer);
 
 		response.write(Buffer([0x06,0x01,0x06]));
-		response.write(tlvHandler.encodeTLV(0x05,Buffer.concat([ciphertextBuffer,macBuffer])));
+		response.write(tlv.encodeTLV(0x05,Buffer.concat([ciphertextBuffer,macBuffer])));
 		response.end();
 	}
-}
+};
 
 function strStartsWith(str, prefix) {
     return str.indexOf(prefix) === 0;
@@ -372,6 +369,4 @@ function toArrayBuffer(buffer) {
     return view;
 }
 
-module.exports = {
-	HAPServer: HAPServer
-};
+module.exports = HAPServer;

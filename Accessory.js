@@ -1,6 +1,7 @@
-var advertiser_fac = require("./Advertiser.js");
-var server_fac = require("./Server.js");
-var tcpServer_fac = require("./TCPServer.js");
+var AccessoryInfo = require("./accessory_info");
+var Advertiser = require("./advertiser");
+var HAPServer = require("./hap_server");
+var TCPServer = require("./tcp_server");
 var crypto = require("crypto");
 var ed25519 = require("ed25519");
 
@@ -20,9 +21,6 @@ Accessory.prototype = {
 };
 
 function Accessory(displayName, username, persistStore, targetPort, pincode, accessoryController) {
-	if (!(this instanceof Accessory))  {
-		return new Accessory(displayName, username, persistStore, targetPort, pincode, accessoryController);
-	}
 	this.displayName = displayName;
 	this.username = username;
 	this.targetPort = targetPort;
@@ -39,38 +37,13 @@ function Accessory(displayName, username, persistStore, targetPort, pincode, acc
 	}
 	this._private = {
 		store: persistStore,
-		advertiser: new advertiser_fac.Advertiser(targetPort, this.displayName,this.username,"1","1"),
-		tcpServer: new tcpServer_fac.TCPServer(targetPort, targetPort+1, persistStore, this.accessoryInfo),
-		hapServer: new server_fac.HAPServer(this.accessoryInfo, function (connectPort, sharedSec){
+		advertiser: new Advertiser(targetPort, this.displayName,this.username,"1","1"),
+		tcpServer: new TCPServer(targetPort, targetPort+1, persistStore, this.accessoryInfo),
+		hapServer: new HAPServer(this.accessoryInfo, function (connectPort, sharedSec){
 			this._private.tcpServer.enableEncryptionForSession(connectPort, sharedSec);
 		}.bind(this), persistStore, accessoryController)
-	}
+	};
 	this.accessoryController.tcpServer = this._private.tcpServer;
 }
 
-AccessoryInfo.prototype = {
-	setKeyPair: function setKeyPair(keys) {
-		this.keyPair = keys;
-	}
-}
-
-function AccessoryInfo(displayName,username, pincode) {
-	if (!(this instanceof AccessoryInfo))  {
-		return new AccessoryInfo(displayName,username);
-	}
-	this.displayName = displayName;
-	this.username = username;
-	this.pincode = pincode;
-
-	var seed = crypto.randomBytes(32);
-	var keyPair = ed25519.MakeKeypair(seed);
-	this.keyPair = {
-		signSk: keyPair.privateKey,
-		signPk: keyPair.publicKey
-	};
-}
-
-module.exports = {
-	Accessory: Accessory,
-	AccessoryInfo: AccessoryInfo
-};
+module.exports = Accessory;

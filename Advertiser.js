@@ -6,13 +6,10 @@ Advertiser.prototype = {
 			this._private.ad.start();
 			this._private.isAdvertising = true;
 		}
-	},
-}
+	}
+};
 
 function Advertiser(port, accessory_name, accessory_id, accessory_conf, accessory_state) {
-	if (!(this instanceof Advertiser))  {
-		return new Advertiser(port, accessory_name, accessory_id, accessory_conf, accessory_state);
-	}
 	this.targetPort = port;
 	this.acc_name = accessory_name;
 	this.acc_id = accessory_id;
@@ -20,7 +17,7 @@ function Advertiser(port, accessory_name, accessory_id, accessory_conf, accessor
 	this.acc_state = accessory_state;
 	this._private = {
 		isAdvertising: false
-	}
+	};
 	this._private.txt_record = {
 	    md: this.acc_name,
 	    pv: "1.0",
@@ -33,6 +30,4 @@ function Advertiser(port, accessory_name, accessory_id, accessory_conf, accessor
 	this._private.ad = mdns.createAdvertisement(mdns.tcp('hap'), this.targetPort, {name: this.acc_name, txtRecord: this._private.txt_record});
 }
 
-module.exports = {
-	Advertiser: Advertiser
-};
+module.exports = Advertiser;

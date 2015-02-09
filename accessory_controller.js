@@ -25,10 +25,10 @@ AccessoryController.prototype = {
 		var accessory = {
 			aid: 1,
 			services: servicesObjects
-		}
+		};
 		var dict = {
 			accessories: [accessory]
-		}
+		};
 		return JSON.stringify(dict);
 	},
 	jsonForCharacteristicUpdate: function jsonForCharacteristicUpdate(aid, iid) {
@@ -42,7 +42,7 @@ AccessoryController.prototype = {
 					value: charValue
 				}
 			]
-		}
+		};
 		return JSON.stringify(respDict);
 	},
 	processCharacteristicsValueWrite: function processCharacteristicsValueWrite(updates, peer) {
@@ -68,17 +68,12 @@ AccessoryController.prototype = {
 			this.tcpServer.broadcastEvent(data, subscribedPeers, peer);
 		}
 	}
-}
+};
 
 function AccessoryController() {
-	if (!(this instanceof AccessoryController))  {
-		return new AccessoryController();
-	}
 	this.instanceID = 1;
 	this.objects = {};
 	this.services = [];
 }
 
-module.exports = {
-	AccessoryController: AccessoryController
-};
+module.exports = AccessoryController;

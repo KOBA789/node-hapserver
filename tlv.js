@@ -24,7 +24,7 @@ exports.encodeTLV = function (type,data) {
     }
     
     return encodedTLVBuffer;
-}
+};
 
 exports.decodeTLV = function (data) {
     
@@ -52,4 +52,4 @@ exports.decodeTLV = function (data) {
     };
     
     return objects;
-}
+};
