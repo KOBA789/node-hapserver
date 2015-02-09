@@ -1,0 +1,28 @@
+{
+  "name": "node-hapserver",
+  "version": "1.0.0",
+  "description": "HAP-NodeJS ============= HAP-NodeJS is a Node.js implementation of HomeKit Accessory Server.",
+  "main": "Accessory.js",
+  "dependencies": {
+    "curve25519": "^1.0.0",
+    "ed25519": "0.0.2",
+    "mdns": "^2.2.4",
+    "node-persist": "0.0.3",
+    "srp": "git://github.com/KOBA789/node-srp"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KOBA789/node-hapserver.git"
+  },
+  "author": "KOBA789 <kobahide789@gmail.com> (http://koba789.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KOBA789/node-hapserver/issues"
+  },
+  "homepage": "https://github.com/KOBA789/node-hapserver"
+}

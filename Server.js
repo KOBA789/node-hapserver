@@ -1,7 +1,7 @@
 var http = require("http");
 var crypto = require("crypto");
 var srp = require("srp");
-var hkdf = require("node-hkdf");
+var hkdf = require("./hkdf");
 var url = require("url");
 var ed25519 = require("ed25519");
 var tlvHandler = require("./TLV-Handler.js");
@@ -248,9 +248,17 @@ HAPServer.prototype = {
 		response.writeHead(200, {"Content-Type": "application/pairing+tlv8"});
 		var salt = crypto.randomBytes(16);
 		var srp_params = srp.params["3072"];
+    srp_params.hash = 'sha512';
 
 		srp.genKey(32,function (error, key) {
-			this.srpServer = new srp.Server(srp_params, Buffer(salt), Buffer("Pair-Setup"), Buffer(this.accessoryInfo.pincode), key);
+			this.srpServer = new srp.Server(srp_params,
+                                      Buffer(salt),
+                                      Buffer("Pair-Setup"),
+                                      srp.computeVerifier(srp_params,
+                                                          Buffer(salt),
+                                                          Buffer("Pair-Setup"),
+                                                          Buffer(this.accessoryInfo.pincode)),
+                                      key);
 			var srpB = this.srpServer.computeB();
 
 			var respData_pub = tlvHandler.encodeTLV(0x03,srpB);
@@ -270,9 +278,8 @@ HAPServer.prototype = {
 		var M1 = objects[4];
 
 		this.srpServer.setA(A);
-		this.srpServer.checkM1(M1);
 
-		var M2 = this.srpServer.computeM2();
+		var M2 = this.srpServer.checkM1(M1);
 		var respData_M2 = tlvHandler.encodeTLV(0x04,M2);
 		response.write(Buffer([0x06,0x01,0x04]));
 		response.write(respData_M2);
